@@ -1,5 +1,6 @@
 const double stroke_length = 69.5841256;                        // [mm] approximate stroke length
 const int resolution = 200;                                     // [steps/rev] Motor resolution
+const double max_freq = 31372.55 / 8;
 const double ang_speed = 1 / double(resolution)* max_freq;      // [revs/sec] Angular speed
 const double linear_speed = 5 * ang_speed;                      // [mm/sec] Linear displacement
 const int dir_pin = 9;                                          // Changes direction of motor
