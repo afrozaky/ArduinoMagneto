@@ -7,7 +7,7 @@ const int dir_pin = 9;                                          // Changes direc
 const int step_pin = 10;                                        // Positive edge output from this pin advances motor one increment
 const double tau = stroke_length/linear_speed;
 
-// setPwmFrequency - sets the frequency of PWM to the pin to maximum frequency divided by the divisor
+// setPwmFrequency - sets the frequency of PWM of the input pin to maximum frequency divided by the divisor
 void setPwmFrequency(int pin, int divisor) {
   byte mode;
   if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
@@ -55,7 +55,7 @@ void loop() {
   setPwmFrequency(step_pin, 8);
   analogWrite(step_pin, 128);
   delay(tau-1.25);
-  analogWrite(step_pin, 0);     // bringing pulse height to 0 to move to negative half of cycle
+  analogWrite(step_pin, 0);     // ending the first half of cycle
   
 // part 3 - low frequency negative waveform to start motor in reverse direction
   digitalWrite(dir_pin, LOW);
@@ -63,7 +63,7 @@ void loop() {
   analogWrite(step_pin, 128);
   delay(10);
   
-// part 4 - high frequency negative waveform to bring the piston back to initial position
+// part 4 - high frequency negative waveform to bring the pistons back to initial position
   setPwmFrequency(step_pin, 8);
   analogWrite(step_pin, 128);
   delay(tau-1.25);
