@@ -1,11 +1,13 @@
 const double stroke_length = 69.5841256;                        // [mm] approximate stroke length
 const int resolution = 200;                                     // [steps/rev] Motor resolution
-const double max_freq = 31372.55 / 8;                           // [pulses/sec] Frequency of pulsing square waves
+const double max_freq = 3000;                                   // [pulses/sec] Frequency of pulsing square waves
 const double ang_speed = 1 / double(resolution)* max_freq;      // [revs/sec] Angular speed
 const double linear_speed = 5 * ang_speed;                      // [mm/sec] Linear displacement
 const int dir_pin = 9;                                          // Changes direction of motor
 const int step_pin = 10;                                        // Positive edge output from this pin advances motor one increment
-const double tau = stroke_length/linear_speed;
+ratio = 0.1;                                                    // ratio of time for ramping to time for constant frequency
+const double tau = 1000*stroke_length / ...
+((1-*ratio)*linear_speed+.5*ratio*linear_speed);                // [ms] duration of stroke completion at maximum speed
 
 // setPwmFrequency - sets the frequency of PWM of the input pin to maximum frequency divided by the divisor
 void setPwmFrequency(int pin, int divisor) {
@@ -44,6 +46,57 @@ void setup() {
   pinMode(dir_pin, OUTPUT);                                             
   pinMode(step_pin, OUTPUT);
 }
+
+void rampUp() {
+  double freq = 0;
+  double dt = 0.005*ratio*tau;  
+  double initial_time = millis();
+  digitalWrite(dir_pin, 255);
+  int counter = 0;
+  while(millis() - initial_time < 0.5*percent*tau && freq < max_freq){    
+    counter++;
+    rval = counter*.01*max_freq;
+    if(counter < 5){
+      analogWrite(step_pin, 128);
+      delay(dt*rval/490.2);
+      analogWrite(step_pin,0);
+      delay(dt*(1-rval/490.2));
+    }
+    else{
+      setPwmFrequency(step_pin, 1);
+      analogWrite(step_pin, 128);
+      delay(dt*rval/31372.55);
+      analogWrite(step_pin,0);
+      delay(dt*(1-rval/490.2));
+    }
+  }
+}
+
+void rampDown() {
+  double rval = 0;
+  double dt = 0.005*percent*tau;  
+  double initial_time = millis();
+  digitalWrite(dir_pin, 255);
+  int counter = 0;
+  while(millis() - initial_time < 0.5*percent*tau && rval < val){    
+    counter++;
+    rval = counter*.01*max_freq
+    if(counter < 5){
+      analogWrite(step_pin, 128);
+      delay(dt*.01*counter*max_freq/490.2);
+      analogWrite(step_pin,0);
+      delay(dt*(1-.01*counter*max_freq/490.2));
+    }
+    else{
+      setPwmFrequency(step_pin, 1);
+      analogWrite(step_pin, 128);
+      delay(dt*.01*counter*max_freq/31372.55);
+      analogWrite(step_pin,0);
+      delay(dt*(1-.01*counter*max_freq/490.2));
+    }
+  }
+}
+
 
 void loop() {
 // part 1 - low frequency positive waveform to start motor
