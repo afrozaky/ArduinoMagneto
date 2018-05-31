@@ -82,7 +82,6 @@ double calcTime(){
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   double pwmFreq = 3921.16;
   int val = max_freq / pwmFreq * 255;
   setPwmFrequency(step_pin, 8);
