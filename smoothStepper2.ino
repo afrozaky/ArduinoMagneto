@@ -35,9 +35,11 @@ void loop() {
     }
     freq+=2;
     pulseAcceleration = 2/(ncycles*period) * pow(10,6);         
-    period = 1/freq * pow(10,6);    
+    period = 1/freq * pow(10,6); 
+    Serial.print(pulseAcceleration);
+    Serial.print(" ");   
+    Serial.println(millis() - initialTime);
   }
-  Serial.println(millis() - initialTime);
 
   initialTime = millis();
   while(millis() - initialTime < peakTime * pow(10, 3)){
@@ -59,7 +61,9 @@ void loop() {
     freq-=2;
     pulseAcceleration = 2/(ncycles*period) * pow(10,6);         
     period = 1/freq * pow(10,6);
+    Serial.print(pulseAcceleration);
+    Serial.print(" ");   
+    Serial.println(millis() - initialTime);
   }
-  Serial.println(millis() - initialTime);
 }
 
