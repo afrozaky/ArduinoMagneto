@@ -12,6 +12,8 @@ const double rampTime = 0.5*ratio*totalTime;                //Time for one indiv
 const int ncycles = 5;                      //the number of cycles the same frequency will be maintained at on the ramp up and down part of the curve, could be a function of rampTime
 const byte DIR = 9;
 const byte STEP = 10;
+double pulseAcceleration;
+// double freq = startFreq;
 
 void setup() {
   pinMode(DIR, OUTPUT);
@@ -30,10 +32,14 @@ void loop() {
       delayMicroseconds(period/2.0);
       digitalWrite(STEP, LOW);
       delayMicroseconds(period/2.0);
-    }
+    }    
+    pulseAcceleration = (1/period*(period+1))/(ncycles*period) * pow(10,6);         
+    Serial.print(pulseAcceleration);
+    Serial.print(" ");   
+    Serial.println(millis() - initialTime);
     period--;
   }
-  Serial.println(millis() - initialTime);
+  // Serial.println(millis() - initialTime);
 
   initialTime = millis();
   while(millis() - initialTime < peakTime * pow(10, 3)){
@@ -52,7 +58,11 @@ void loop() {
       digitalWrite(STEP, LOW);
       delayMicroseconds(period/2.0);
     }
+    pulseAcceleration = (1/(period-1)*period)/(ncycles*period) * pow(10,6);         
+    Serial.print(pulseAcceleration);
+    Serial.print(" ");   
+    Serial.println(millis() - initialTime);
     period++;
   }
-  Serial.println(millis() - initialTime);
+  // Serial.println(millis() - initialTime);
 }
