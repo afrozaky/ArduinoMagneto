@@ -7,17 +7,21 @@
     then decelerates it back to a minimum frequency. Then it changes the direction of rotation and repeats the sequence.
 */
 
+// INPUTS
+const double strokeLength = 50;                                                     // [mm] stroke length to cover in a half cycle
+const double totalTime = 1;                                                         // [s] time for one half cycle/full stroke length
+
 // DECLARING CONSTANTS
-const double startFreq = 250;                                           // [Hz] min value of 62 Hz by precision of delayMicroseconds
-const double maxFreq = 3500;                                            // [Hz] max value of 330 kHz by precision of delayMicroseconds
-const double finalPeriod = 1 / (maxFreq) * pow(10, 6);                  // [us] final period corresponding to maximum frequency
-const double basePeriod = 1 / (startFreq) * pow(10, 6);                 // [us] base period or the period to ramp up from and ramp down to
-const double peakTime = 0.3;                                     // [s] time for which max frequency should be maintained
-const double df = 135;                                                  // [Hz] frequency increments
-unsigned int dt = 2950;                                                 // [us] time increments
-const byte DIR = 9;                                                     // direction pin on Arduino board
-const byte STEP = 10;                                                   // clock pin on Arduino board
-const double pulseAcceleration  = df / dt * pow(10, 6);                 // [s^-2] frequency acceleration rate
+const double peakTime = sqrt(pow(totalTime, 2) - 3840 * strokeLength / pow(10, 6)); // [s] time for which max frequency should be maintained
+const double startFreq = 250;                                                       // [Hz] min value of 62 Hz by precision of delayMicroseconds
+const double maxFreq = pow(10, 6) * (totalTime - peakTime) / 48;
+const double finalPeriod = 1 / (maxFreq) * pow(10, 6);                              // [us] final period corresponding to maximum frequency
+const double basePeriod = 1 / (startFreq) * pow(10, 6);                             // [us] base period or the period to ramp up from and ramp down to
+const double df = 135;                                                              // [Hz] frequency increments
+unsigned int dt = 2950;                                                             // [us] time increments
+const byte DIR = 9;                                                                 // direction pin on Arduino board
+const byte STEP = 10;                                                               // clock pin on Arduino board
+const double pulseAcceleration  = df / dt * pow(10, 6);                             // [s^-2] frequency acceleration rate
 
 // NON CONSTANT VARIABLES
 double period = basePeriod;
@@ -33,6 +37,9 @@ void setup() {
   digitalWrite(DIR, LOW);
   digitalWrite(STEP, LOW);
   Serial.begin(2000000);
+  Serial.print(peakTime);
+  Serial.print(" ");
+  Serial.println(maxFreq);
 }
 
 
@@ -58,6 +65,7 @@ void loop() {
   }
   Serial.print(stepCount);
   Serial.print(" ");
+  Serial.println(freq);
 
   // REMAIN AT MAX FREQUENCY
   stepCount = 0;
@@ -75,6 +83,7 @@ void loop() {
 
   Serial.print(stepCount);
   Serial.print(" ");
+  Serial.println(freq);
 
   // RAMP DOWN FROM MAX FREQUENCY
   //initialTime2 = millis();
@@ -94,6 +103,8 @@ void loop() {
     period = 1 / freq * pow(10, 6);
   }
 
-  Serial.println(stepCount);
+  Serial.print(stepCount);
+  Serial.print(" ");
+  Serial.println(freq);
 
 }
