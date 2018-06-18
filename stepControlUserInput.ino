@@ -69,14 +69,17 @@ void loop() {
       while (Serial.available() == 0) {}
       cycles = Serial.parseFloat();                                      //Read user input into height
 
-      if (totalTime != 0 && strokeLength != 0) {
+ if (totalTime != 0 && strokeLength != 0 && cycles != 0) {
         Serial.print("Total time entered: ");
         Serial.println(totalTime);
         Serial.print("Stroke length entered: ");
         Serial.println(strokeLength);
         Serial.print("Number of cycles entered: ");
-        Serial.println(strokeLength);
-        Serial.println("Beginning motor control sequence");
+        Serial.println(cycles);
+        Serial.print("Stroke Frequency: ");
+        Serial.println(1.0 / (2.0 * totalTime));
+
+        //Initialize variables from user input
         peakTime = sqrt(pow(totalTime, 2) - 3840 * strokeLength / pow(10, 6)); // [s] time for which max frequency should be maintained
         maxFreq = pow(10, 6) * (totalTime - peakTime) / 48;
         finalPeriod = 1 / (maxFreq) * pow(10, 6);                              // [us] final period corresponding to maximum frequency
@@ -84,6 +87,11 @@ void loop() {
         nPulses = ((maxFreq - startFreq) / 2.0) * .024 * maxFreq * .001;
         constPulses = maxFreq * peakTime;
         period = basePeriod;
+
+        Serial.print("Max RPM: ");
+        Serial.println(maxFreq / 200.0 * 60);
+        Serial.println("Beginning motor control sequence in 3 seconds");
+        delay(3000);                          //Give user time to read out
       }
     }
 
