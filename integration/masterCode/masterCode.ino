@@ -10,6 +10,8 @@ double fluxFreq = 0;
 double oldfluxRPM;
 double error = 1;
 double eps=0.01;
+int IRread = 0;
+int lastIRread = 0;
 
 // INPUTS
 double strokeLength = 0;                                                            // [mm] stroke length to cover in a half cycle
@@ -17,7 +19,7 @@ double cycles = 0;
 
 // DECLARING CONSTANTS
 double peakTime;
-const double startStepFreq = 250;                                                       // [Hz] min value of 62 Hz by precision of delayMicroseconds
+const double startStepFreq = 250;                                                   // [Hz] min value of 62 Hz by precision of delayMicroseconds
 double finalStepFreq;
 double finalStepPeriod;
 double startStepPeriod;
@@ -92,6 +94,15 @@ void tach_interrupt()
   accumulator += elapsed;
   revCount++;
 }
+
+void waitTime(){
+  while (IRread != HIGH && IRread == lastIRread){   
+    lastIRread = IRread;  
+    delay(10);
+    IRread = digitalRead(interruptPin);
+  }
+}
+
 void loop() {
   while (error > eps) {
     if (millis() - lastUpdate > 1000) // update every second
@@ -116,6 +127,7 @@ void loop() {
       detachInterrupt(interruptPin);
     }
   }
+  
   totalTime = 1 / 2 / fluxFreq;
   
   // HANDLING USER INPUT SECTION
@@ -132,7 +144,7 @@ void loop() {
       Serial.print("Total time calculated: ");
       Serial.println(totalTime);
       Serial.print("Stroke length entered: ");
-      Serial.println(strokeLength);
+      Serial.println(strokeLength);+
       Serial.print("Number of cycles entered: ");
       Serial.println(cycles);
       Serial.print("Stroke Frequency: ");
@@ -150,4 +162,69 @@ void loop() {
       Serial.print("Max Stepper RPM: ");
       Serial.println(finalStepFreq / 200.0 * 60);
       }
+  }
+      waitTime();
+
+    if (counter < 2 * cycles) {
+    stepCount = 0;
+    initialTime2 = millis();
+    limitSwitch = analogRead(A0);
+    //    Serial.println(limitSwitch);
+
+    // RAMP UP TO MAX FREQUENCY
+    while (stepCount < nPulses && freq < finalStepFreq) {
+      initialTime = micros();
+      while (micros() - initialTime < dt) {
+        digitalWrite(CLOCK, HIGH);
+        delayMicroseconds(period / 2.0);
+        digitalWrite(CLOCK, LOW);
+        delayMicroseconds(period / 2.0);
+        stepCount++;
+        if (stepCount >= nPulses)
+          break;
+      }
+      freq += df;
+      period = 1 / freq * pow(10, 6);
+    }
+
+    // REMAIN AT MAX FREQUENCY
+    stepCount = 0;
+    for (int i = 0; i < constPulses; i++) {
+      digitalWrite(CLOCK, HIGH);
+      delayMicroseconds(period / 2.0);
+      digitalWrite(CLOCK, LOW);
+      delayMicroseconds(period / 2.0);
+      stepCount++;
+    }
+
+    // RAMP DOWN FROM MAX FREQUENCY
+    stepCount = 0;
+    while (freq > startStepFreq)  {
+      initialTime = micros();
+      while (micros() - initialTime < dt) {
+        digitalWrite(CLOCK, HIGH);
+        delayMicroseconds(period / 2.0);
+        digitalWrite(CLOCK, LOW);
+        delayMicroseconds(period / 2.0);
+        stepCount++;
+      }
+      freq -= df;
+      period = 1 / freq * pow(10, 6);
+    }
+
+    limitSwitch = analogRead(A0);
+    //    Serial.println(millis() - initialTime2);
+    //    Serial.println(stepCount);
+    //    Serial.println(limitSwitch);
+    counter++;                                        // End of one half cycle, increment counter
+    delay(0.1 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
+
+    // DIRECTION SWITCH
+    digitalWrite(DIR, !digitalRead(DIR));
+
+    if (counter % 2 == 0) {
+      waitTime();
+    }
+  }
+  
 }
