@@ -67,7 +67,7 @@ double period;
 //-------------------------------------
 
 void setup() {
-  Serial.begin(2000000);                                                            // initialize the serial port and display
+  Serial.begin(115200);                                                            // initialize the serial port and display
   pinMode(interruptPin, INPUT_PULLUP);                                              // enable the pullup resistor and attach the interrupt
   attachInterrupt(digitalPinToInterrupt(interruptPin), tach_interrupt, FALLING);
 
@@ -156,7 +156,7 @@ void loop() {
       Serial.println(fluxFreq);
       Serial.print("Calculated fluxRPM: ");
       Serial.println(fluxRPM);
-      Serial.println("Gauss frequency measured, the driver can now be turned on");
+      Serial.println("EMF frequency measured, the driver can now be turned on");
       detachInterrupt(interruptPin);
     }
   }
