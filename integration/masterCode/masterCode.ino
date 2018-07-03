@@ -19,7 +19,7 @@
 // INITIALIZING - Declaring inputs and constants
 //-------------------------------------
 
-// Part I - IR SENSOR PARAMETERS
+// Part I - IR SENSOR VARIABLES
 #define interruptPin 3                                                              // tachometer limit switch pin on Arduino board
 unsigned long lastUpdate = 0;                                                       // for timing display updates
 volatile long accumulator = 0;                                                      // sum of last 8 revolution times
@@ -51,7 +51,6 @@ const byte LIMIT = 12;                                                          
 const byte ONOFF = 2;                                                               //On off pin on Arduino board, HIGH turns off the driver
 double nPulses;
 double constPulses;
-int limitVal;
 int counter = 0;
 double totalTime;                                                                   // [s] time for one half cycle/full stroke length
 double travelTime;
@@ -79,8 +78,6 @@ void setup() {
   pinMode(LIMIT, INPUT);
   digitalWrite(ONOFF, LOW);
   digitalWrite(CLOCK, LOW);
-  limitVal = analogRead(A0);
-  homeleft();                                                                       // bring pistons to home position before starting cycles
   digitalWrite(DIR, HIGH);   //LOW -> TOWARDS MOTOR; HIGH -> AWAY FROM MOTOR
 }
 
@@ -128,17 +125,8 @@ void tach_interrupt() {
 // new EMF cycle is started
 //-------------------------------------
 
-void waitTime() {
-  while (digitalRead(interruptPin) == HIGH) {
-    //  IRread = digitalRead(interruptPin);
-    //  if (IRread == LOW) {
-    ////    if (IRread != lastIRread) {
-    ////      lastIRread = IRread;
-    //      break;
-    //    }
-    ////  }
-    ////  lastIRread = IRread;
-  }
+void waitTime() {                 
+  while (digitalRead(interruptPin) == HIGH) {}
 }
 
 //-------------------------------------
@@ -168,6 +156,7 @@ void loop() {
       Serial.println(fluxFreq);
       Serial.print("Calculated fluxRPM: ");
       Serial.println(fluxRPM);
+      Serial.println("Gauss frequency measured, the driver can now be turned on");
       detachInterrupt(interruptPin);
     }
   }
@@ -208,17 +197,17 @@ void loop() {
       Serial.print("Max Stepper RPM: ");
       Serial.println(finalStepFreq / 200.0 * 60);
       Serial.println("Beginning motor control sequence in 3 seconds");
+      homeleft();                                                                       // bring pistons to home position before starting cycles
       delay(3000);
       waitTime();
     }
   }
 
   // PART IV - SYNCHRONIZE AND RUN THE STEPPER MOTOR
-  delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
+  delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
   if (counter < 2 * cycles) {
     stepCount = 0;
     initialTime2 = millis();
-    limitVal = analogRead(A0);
 
     // RAMP UP TO MAX FREQUENCY
     while (stepCount < nPulses && freq < finalStepFreq) {
@@ -261,10 +250,8 @@ void loop() {
       period = 1 / freq * pow(10, 6);
     }
 
-    limitVal = analogRead(A0);
     //    Serial.println(millis() - initialTime2);
     //    Serial.println(stepCount);
-    //    Serial.println(limitVal);
     counter++;                                        // End of one half cycle, increment counter
     delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
 
