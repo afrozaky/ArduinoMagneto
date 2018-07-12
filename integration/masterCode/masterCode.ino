@@ -67,7 +67,7 @@ double period;
 //-------------------------------------
 
 void setup() {
-  Serial.begin(115200);                                                            // initialize the serial port and display
+  Serial.begin(2000000);                                                            // initialize the serial port and display
   pinMode(interruptPin, INPUT_PULLUP);                                              // enable the pullup resistor and attach the interrupt
   attachInterrupt(digitalPinToInterrupt(interruptPin), tach_interrupt, FALLING);
 
@@ -75,7 +75,7 @@ void setup() {
   pinMode(DIR, OUTPUT);                                                             // driver and limit switch settings
   pinMode(CLOCK, OUTPUT);
   pinMode(interruptPin, INPUT);
-  pinMode(LIMIT, INPUT);
+  pinMode(LIMIT, INPUT_PULLUP);
   digitalWrite(ONOFF, LOW);
   digitalWrite(CLOCK, LOW);
   digitalWrite(DIR, HIGH);   //LOW -> TOWARDS MOTOR; HIGH -> AWAY FROM MOTOR
@@ -95,12 +95,13 @@ void homeleft() {
   digitalWrite(DIR, LOW);                                                          // LOW  -> TOWARDS MOTOR (LEFT)
   double homingFreq = 750;
   double homingPeriod = 1 / homingFreq * pow(10, 6);
-  while (digitalRead(LIMIT) == HIGH) {                                             // run at homing frequency until limit hit
+  while (digitalRead(LIMIT) == LOW) {                                             // run at homing frequency until limit hit
     digitalWrite(CLOCK, HIGH);
     delayMicroseconds(homingPeriod / 2.0);
     digitalWrite(CLOCK, LOW);
     delayMicroseconds(homingPeriod / 2.0);
   }
+  digitalWrite(DIR, HIGH); 
 }
 
 //-------------------------------------
