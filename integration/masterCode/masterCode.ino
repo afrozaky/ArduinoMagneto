@@ -101,7 +101,7 @@ void homeleft() {
     digitalWrite(CLOCK, LOW);
     delayMicroseconds(homingPeriod / 2.0);
   }
-  digitalWrite(DIR, HIGH); 
+  digitalWrite(DIR, HIGH);                                      //Change direction to be away from limit switch
 }
 
 //-------------------------------------
@@ -179,6 +179,8 @@ void loop() {
     if (cycles != 0 && strokeLength != 0) {
       Serial.print("Total time calculated: ");
       Serial.println(totalTime);
+      Serial.print("Travel time calculated: ");
+      Serial.println(travelTime);
       Serial.print("Stroke length entered: ");
       Serial.println(strokeLength); 
       Serial.print("Number of cycles entered: ");
@@ -197,6 +199,8 @@ void loop() {
 
       Serial.print("Max Stepper RPM: ");
       Serial.println(finalStepFreq / 200.0 * 60);
+      Serial.print("Max Stepper Frequency: ");
+      Serial.println(finalStepFreq);
       Serial.println("Beginning motor control sequence in 3 seconds");
       homeleft();                                                                       // bring pistons to home position before starting cycles
       delay(3000);
