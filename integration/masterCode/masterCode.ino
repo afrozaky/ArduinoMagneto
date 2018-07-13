@@ -160,11 +160,12 @@ void loop() {
       Serial.println("EMF frequency measured, the driver can now be turned on");
       detachInterrupt(interruptPin);
     }
-  }
-
   // PART II - USE CALCULATED FREQUENCY TO EVAVLUATE TIME FOR COVERING STROKE LENGTH
   totalTime = 1.0 / 2.0 / fluxFreq;
   travelTime = 0.9 * totalTime - 0.1;
+  }
+
+
 
   // PART III - HANDLE USER INPUT SECTION
   if (strokeLength == 0 || cycles == 0) {
