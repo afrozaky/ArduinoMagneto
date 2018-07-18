@@ -8,11 +8,11 @@
     then decelerates it back to a minimum frequency. Then it changes the direction of rotation and repeats the sequence a given number of times.
 
     Please follow the folllowing instructions for running the code:
-    1) Hit the upload button
-    2) Turn the motor driver ON
+    1) Turn the sine EMF ON
+    2) Hit the upload button on the screen
     3) Select Tools -> Serial Monitor
-    4) Follow instructions on the serial monitor
-    Please DO NOT touch the following script, thank you.
+    4) Turn motor driver ON when indicated
+    5) Follow remaining instructions on the serial monitor
 **/
 
 //-------------------------------------
@@ -60,6 +60,7 @@ unsigned long initialTime;
 double freq = startStepFreq;
 unsigned long stepCount = 0;
 unsigned long initialTime2;
+unsigned long totalTimebegin;
 double period;
 
 //-------------------------------------
@@ -69,8 +70,7 @@ double period;
 void setup() {
   Serial.begin(2000000);                                                            // initialize the serial port and display
   pinMode(interruptPin, INPUT_PULLUP);                                              // enable the pullup resistor and attach the interrupt
-  attachInterrupt(digitalPinToInterrupt(interruptPin), tach_interrupt, FALLING);
-
+  attachInterrupt(digitalPinToInterrupt(interruptPin), tach_interrupt, RISING);
   pinMode(ONOFF, OUTPUT);
   pinMode(DIR, OUTPUT);                                                             // driver and limit switch settings
   pinMode(CLOCK, OUTPUT);
@@ -112,7 +112,7 @@ void homeleft() {
 void tach_interrupt() {
   long usNow = micros();                                                          // calculate the microseconds since the last interrupt
   long elapsed = usNow - startTime;
-  if (elapsed > 70000) {
+  if (elapsed > 100000) {
     startTime = usNow;                                                              // reset the clock
     accumulator -= (accumulator >> 1);                                              // accumulate the last 2 interrupt intervals
     accumulator += elapsed;
@@ -126,8 +126,8 @@ void tach_interrupt() {
 // new EMF cycle is started
 //-------------------------------------
 
-void waitTime() {                 
-  while (digitalRead(interruptPin) == HIGH) {}
+void waitTime() {
+  while (digitalRead(interruptPin) == LOW) {}
 }
 
 //-------------------------------------
@@ -158,14 +158,14 @@ void loop() {
       Serial.print("Calculated fluxRPM: ");
       Serial.println(fluxRPM);
       Serial.println("EMF frequency measured, the driver can now be turned on");
-      detachInterrupt(interruptPin);
+      detachInterrupt(1);
     }
+
+  }
+
   // PART II - USE CALCULATED FREQUENCY TO EVAVLUATE TIME FOR COVERING STROKE LENGTH
   totalTime = 1.0 / 2.0 / fluxFreq;
   travelTime = 0.9 * totalTime - 0.1;
-  }
-
-
 
   // PART III - HANDLE USER INPUT SECTION
   if (strokeLength == 0 || cycles == 0) {
@@ -183,7 +183,7 @@ void loop() {
       Serial.print("Travel time calculated: ");
       Serial.println(travelTime);
       Serial.print("Stroke length entered: ");
-      Serial.println(strokeLength); 
+      Serial.println(strokeLength);
       Serial.print("Number of cycles entered: ");
       Serial.println(cycles);
       Serial.print("Average Stroke Frequency: ");
@@ -210,8 +210,9 @@ void loop() {
   }
 
   // PART IV - SYNCHRONIZE AND RUN THE STEPPER MOTOR
-  delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
-  if (counter < 2 * cycles) {
+      delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
+  while (counter < 2 * cycles) {
+    totalTimebegin = millis();
     stepCount = 0;
     initialTime2 = millis();
 
@@ -259,14 +260,22 @@ void loop() {
     //    Serial.println(millis() - initialTime2);
     //    Serial.println(stepCount);
     counter++;                                        // End of one half cycle, increment counter
-    delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
 
     // DIRECTION SWITCH
     digitalWrite(DIR, !digitalRead(DIR));
 
-    if (counter % 2 == 0) {
-      waitTime();
+    if (counter % 2 == 1) {
+      delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
     }
+    else {
+      initialTime = millis();
+      waitTime();
+      Serial.println("Wait Time: ");
+      Serial.println(millis()-initialTime);
+      Serial.println("Total Time: ");
+      Serial.println(millis() - totalTimebegin);
+    }
+        delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
   }
 
 }
