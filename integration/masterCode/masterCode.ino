@@ -170,13 +170,36 @@ void loop() {
   // PART III - HANDLE USER INPUT SECTION
   if (strokeLength == 0 || cycles == 0) {
     counter = 0;                                                                    // Reset
-    Serial.println("Enter stroke length in mm ");                                   // Prompt User for input
+    Serial.println("Enter stroke length in mm (0 to 60 mm) ");                                   // Prompt User for input
     while (Serial.available() == 0) {}
     strokeLength = Serial.parseFloat();                                             // Read user input into height
     Serial.println("Enter number of cycles ");                                      // Prompt User for input
     while (Serial.available() == 0) {}
     cycles = Serial.parseFloat();                                                   // Read user input into height
 
+
+    //Initialize variables from user input
+    peakTime = sqrt(pow(travelTime, 2) - 3840 * strokeLength / pow(10, 6));        // [s] time for which max frequency should be maintained
+    finalStepFreq = pow(10, 6) * (travelTime - peakTime) / 48;
+    finalStepPeriod = 1 / (finalStepFreq) * pow(10, 6);                           // [us] final period corresponding to maximum frequency
+    startStepPeriod = 1 / (startStepFreq) * pow(10, 6);                           // [us] base period or the period to ramp up from and ramp down to
+    nPulses = ((finalStepFreq - startStepFreq) / 2.0) * .024 * finalStepFreq * .001;
+    constPulses = finalStepFreq * peakTime;
+    period = startStepPeriod;
+    
+    if(strokeLength > 60){
+      Serial.println("Stroke length > 60, enter a decreased stroke length");
+      strokeLength = cycles = 0;
+    }
+    
+    if(finalStepFreq > 5200){
+      Serial.println("Entered stroke length yields a max frequency > 5200, enter a decreased stroke length");
+      strokeLength = cycles = 0;
+    }else if (finalStepFreq < 500){
+      Serial.println("Entered stroke length yields a max frequency < 500, enter an increased stroke length");
+      strokeLength = cycles = 0;
+    }
+    
     if (cycles != 0 && strokeLength != 0) {
       Serial.print("Total time calculated: ");
       Serial.println(totalTime);
@@ -188,16 +211,6 @@ void loop() {
       Serial.println(cycles);
       Serial.print("Average Stroke Frequency: ");
       Serial.println(1.0 / (2.0 * totalTime));
-
-      //Initialize variables from user input
-      peakTime = sqrt(pow(travelTime, 2) - 3840 * strokeLength / pow(10, 6));        // [s] time for which max frequency should be maintained
-      finalStepFreq = pow(10, 6) * (travelTime - peakTime) / 48;
-      finalStepPeriod = 1 / (finalStepFreq) * pow(10, 6);                           // [us] final period corresponding to maximum frequency
-      startStepPeriod = 1 / (startStepFreq) * pow(10, 6);                           // [us] base period or the period to ramp up from and ramp down to
-      nPulses = ((finalStepFreq - startStepFreq) / 2.0) * .024 * finalStepFreq * .001;
-      constPulses = finalStepFreq * peakTime;
-      period = startStepPeriod;
-
       Serial.print("Max Stepper RPM: ");
       Serial.println(finalStepFreq / 200.0 * 60);
       Serial.print("Max Stepper Frequency: ");
@@ -210,7 +223,7 @@ void loop() {
   }
 
   // PART IV - SYNCHRONIZE AND RUN THE STEPPER MOTOR
-      delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
+  delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
   while (counter < 2 * cycles) {
     totalTimebegin = millis();
     stepCount = 0;
@@ -271,11 +284,11 @@ void loop() {
       initialTime = millis();
       waitTime();
       Serial.println("Wait Time: ");
-      Serial.println(millis()-initialTime);
+      Serial.println(millis() - initialTime);
       Serial.println("Total Time: ");
       Serial.println(millis() - totalTimebegin);
     }
-        delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
+    delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
   }
 
 }
