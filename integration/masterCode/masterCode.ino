@@ -165,7 +165,7 @@ void loop() {
 
   // PART II - USE CALCULATED FREQUENCY TO EVAVLUATE TIME FOR COVERING STROKE LENGTH
   totalTime = 1.0 / 2.0 / fluxFreq;
-  travelTime = 0.9 * totalTime - 0.1;
+  travelTime = 0.82 * totalTime;
 
   // PART III - HANDLE USER INPUT SECTION
   if (strokeLength == 0 || cycles == 0) {
