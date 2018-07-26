@@ -165,19 +165,18 @@ void loop() {
 
   // PART II - USE CALCULATED FREQUENCY TO EVAVLUATE TIME FOR COVERING STROKE LENGTH
   totalTime = 1.0 / 2.0 / fluxFreq;
-  travelTime = 0.81 * totalTime;
+  travelTime = 0.9 * totalTime - .12;
 
   // PART III - HANDLE USER INPUT SECTION
   if (strokeLength == 0 || cycles == 0) {
     counter = 0;                                                                    // Reset
-    Serial.println("Enter stroke length in mm (0 to 60 mm) ");                                   // Prompt User for input
+    Serial.println("Enter stroke length in mm (the length of each stroke of the syringes, between 15-60 mm");                                   // Prompt User for input
     while (Serial.available() == 0) {}
     strokeLength = Serial.parseFloat();                                             // Read user input into height
-    Serial.println("Enter number of cycles ");                                      // Prompt User for input
+    Serial.println("Enter number of cycles (the number of magnetic flux cycles to run the flexible platform for)");                                      // Prompt User for input
     while (Serial.available() == 0) {}
     cycles = Serial.parseFloat();                                                   // Read user input into height
-
-
+    
     //Initialize variables from user input
     peakTime = sqrt(pow(travelTime, 2) - 3840 * strokeLength / pow(10, 6));        // [s] time for which max frequency should be maintained
     finalStepFreq = pow(10, 6) * (travelTime - peakTime) / 48;
@@ -186,12 +185,12 @@ void loop() {
     nPulses = ((finalStepFreq - startStepFreq) / 2.0) * .024 * finalStepFreq * .001;
     constPulses = finalStepFreq * peakTime;
     period = startStepPeriod;
-    
+
     if(strokeLength > 60){
       Serial.println("Stroke length > 60, enter a decreased stroke length");
       strokeLength = cycles = 0;
     }
-    
+
     if(finalStepFreq > 5200){
       Serial.println("Entered stroke length yields a max frequency > 5200, enter a decreased stroke length");
       strokeLength = cycles = 0;
@@ -203,27 +202,27 @@ void loop() {
     if (cycles != 0 && strokeLength != 0) {
       Serial.print("Total time calculated: ");
       Serial.println(totalTime);
-      Serial.print("Travel time calculated: ");
+      [Serial.print("Travel time calculated: ");
       Serial.println(travelTime);
       Serial.print("Stroke length entered: ");
       Serial.println(strokeLength);
       Serial.print("Number of cycles entered: ");
       Serial.println(cycles);
       Serial.print("Average Stroke Frequency: ");
-      Serial.println(1.0 / (2.0 * totalTime));
+      Serial.println(1.0 / (2.0 * totalTime));    
       Serial.print("Max Stepper RPM: ");
       Serial.println(finalStepFreq / 200.0 * 60);
       Serial.print("Max Stepper Frequency: ");
       Serial.println(finalStepFreq);
       Serial.println("Beginning motor control sequence in 3 seconds");
-      homeleft();                                                                       // bring pistons to home position before starting cycles
+      homeleft();                                        // bring pistons to home position before starting cycles
       delay(3000);
       waitTime();
     }
   }
 
   // PART IV - SYNCHRONIZE AND RUN THE STEPPER MOTOR
-  delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
+      delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
   while (counter < 2 * cycles) {
     totalTimebegin = millis();
     stepCount = 0;
@@ -278,17 +277,18 @@ void loop() {
     digitalWrite(DIR, !digitalRead(DIR));
 
     if (counter % 2 == 1) {
-      delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Gauss curve
+      delay(0.05 * totalTime * pow(10, 3));           // Add delay between changing directions to match Gauss curve
     }
     else {
       initialTime = millis();
       waitTime();
       Serial.println("Wait Time: ");
-      Serial.println(millis() - initialTime);
+      Serial.println(millis()-initialTime);
       Serial.println("Total Time: ");
       Serial.println(millis() - totalTimebegin);
+//      Serial.println(counter);
     }
-    delay(0.05 * totalTime * pow(10, 3));              // Add delay between changing directions to match Brayton cycle
+        delay(0.05 * totalTime * pow(10, 3));         // Add delay between changing directions to match Brayton cycle
   }
 
 }
